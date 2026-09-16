@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chris Todo</title>
+<meta name="theme-color" content="#E4572E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Chris Todo">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="app">
+
+  <header class="topbar">
+    <div class="topbar-row">
+      <h1 class="wordmark">Chris<span>Todo</span></h1>
+      <button id="settingsBtn" class="icon-btn" type="button" aria-label="Settings">Settings</button>
+    </div>
+    <nav class="tabs" id="tabs" role="tablist">
+      <button class="tab is-active" type="button" data-tab="active" role="tab">Active <span class="count" data-count="active">0</span></button>
+      <button class="tab" type="button" data-tab="assigned" role="tab">Assigned out <span class="count" data-count="assigned">0</span></button>
+      <button class="tab" type="button" data-tab="done" role="tab">Done <span class="count" data-count="done">0</span></button>
+      <button class="tab" type="button" data-tab="cancelled" role="tab">Cancelled <span class="count" data-count="cancelled">0</span></button>
+    </nav>
+  </header>
+
+  <div class="toolbar">
+    <input id="search" class="field search" type="search" placeholder="Search tasks" aria-label="Search tasks">
+    <select id="sortBy" class="field" aria-label="Sort by">
+      <option value="deadline">Sort: Deadline</option>
+      <option value="team">Sort: Team</option>
+      <option value="person">Sort: Person</option>
+      <option value="type">Sort: Type</option>
+      <option value="created">Sort: Newest</option>
+      <option value="title">Sort: Task name</option>
+    </select>
+    <select id="filterTeam" class="field" aria-label="Filter by team"><option value="">All teams</option></select>
+    <select id="filterPerson" class="field" aria-label="Filter by person"><option value="">All people</option></select>
+  </div>
+
+  <main class="sheet-wrap">
+    <div class="sheet-head" aria-hidden="true">
+      <span>Task</span><span>Team</span><span>Person</span><span>Type</span><span>Deadline</span><span></span>
+    </div>
+    <div id="sheet" class="sheet"></div>
+    <p id="emptyState" class="empty" hidden>Nothing here yet. Tap <strong>Add task</strong> to put the first one in.</p>
+  </main>
+
+  <button id="addBtn" class="fab" type="button">+ Add task</button>
+
+</div>
+
+<!-- Task modal -->
+<div id="taskModal" class="modal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-head">
+      <h2 id="modalTitle">Add task</h2>
+      <button id="closeTask" class="icon-btn" type="button" aria-label="Close">Close</button>
+    </div>
+    <div class="modal-body">
+      <p id="parentNote" class="parent-note" hidden></p>
+
+      <label class="lbl" for="fTitle">Task</label>
+      <div class="title-row">
+        <input id="fTitle" class="field" type="text" placeholder="What did you agree to?" autocomplete="off">
+        <button id="micBtn" class="mic" type="button" aria-label="Dictate task" hidden>Speak</button>
+      </div>
+
+      <div class="grid2">
+        <div>
+          <label class="lbl" for="fTeam">Team</label>
+          <select id="fTeam" class="field"></select>
+        </div>
+        <div>
+          <label class="lbl" for="fType">Type</label>
+          <select id="fType" class="field"></select>
+        </div>
+        <div>
+          <label class="lbl" for="fOwner">Person in charge</label>
+          <input id="fOwner" class="field" type="text" list="peopleList" autocomplete="off" placeholder="Optional">
+        </div>
+        <div>
+          <label class="lbl" for="fContact">My contact</label>
+          <input id="fContact" class="field" type="email" list="emailList" autocomplete="off" placeholder="name@canva.com">
+        </div>
+      </div>
+
+      <label class="lbl" for="fDeadline">Deadline</label>
+      <input id="fDeadline" class="field" type="date">
+
+      <label class="lbl" for="fNotes">Notes</label>
+      <textarea id="fNotes" class="field" rows="3" placeholder="Anything worth remembering"></textarea>
+
+      <datalist id="peopleList"></datalist>
+      <datalist id="emailList"></datalist>
+    </div>
+    <div class="modal-actions">
+      <button id="saveTask" class="btn primary" type="button">Save</button>
+      <button id="subTaskBtn" class="btn" type="button" hidden>Add sub-task</button>
+      <button id="assignBtn" class="btn" type="button" hidden>Assign to someone</button>
+      <button id="icsBtn" class="btn" type="button" hidden>Add to calendar</button>
+      <button id="doneBtn" class="btn" type="button" hidden>Mark done</button>
+      <button id="cancelTaskBtn" class="btn" type="button" hidden>Cancel task</button>
+      <button id="restoreBtn" class="btn" type="button" hidden>Move back to Active</button>
+      <button id="deleteBtn" class="btn danger" type="button" hidden>Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Assign modal -->
+<div id="assignModal" class="modal" hidden>
+  <div class="modal-card narrow" role="dialog" aria-modal="true" aria-labelledby="assignTitle">
+    <div class="modal-head">
+      <h2 id="assignTitle">Assign to someone</h2>
+      <button id="closeAssign" class="icon-btn" type="button" aria-label="Close">Close</button>
+    </div>
+    <div class="modal-body">
+      <label class="lbl" for="fAssignTo">Who is taking this on?</label>
+      <input id="fAssignTo" class="field" type="text" list="peopleList" autocomplete="off" placeholder="Their name">
+      <p class="hint">It moves to the Assigned out sheet, stamped with today's date.</p>
+    </div>
+    <div class="modal-actions">
+      <button id="confirmAssign" class="btn primary" type="button">Assign</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add person to team prompt -->
+<div id="personModal" class="modal" hidden>
+  <div class="modal-card narrow" role="dialog" aria-modal="true" aria-labelledby="personTitle">
+    <div class="modal-head">
+      <h2 id="personTitle">New person</h2>
+    </div>
+    <div class="modal-body">
+      <p id="personQuestion" class="hint"></p>
+    </div>
+    <div class="modal-actions">
+      <button id="personToTeam" class="btn primary" type="button">Save to team</button>
+      <button id="personJustTask" class="btn" type="button">Just this task</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings modal -->
+<div id="settingsModal" class="modal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="setTitle">
+    <div class="modal-head">
+      <h2 id="setTitle">Settings</h2>
+      <button id="closeSettings" class="icon-btn" type="button" aria-label="Close">Close</button>
+    </div>
+    <div class="modal-body">
+      <label class="lbl" for="fChaseDays">Nudge me to check in after</label>
+      <select id="fChaseDays" class="field">
+        <option value="3">3 days</option>
+        <option value="7">7 days</option>
+        <option value="14">14 days</option>
+        <option value="30">30 days</option>
+      </select>
+
+      <label class="lbl" for="fNewTeam">Add a team</label>
+      <div class="title-row">
+        <input id="fNewTeam" class="field" type="text" placeholder="Team name">
+        <button id="addTeamBtn" class="btn" type="button">Add</button>
+      </div>
+      <div id="teamChips" class="chips"></div>
+
+      <h3 class="sub">Reminders</h3>
+      <button id="notifyBtn" class="btn" type="button" hidden>Turn on reminders</button>
+      <p class="hint">On iPhone, use <strong>Add to calendar</strong> on a task to get a real alarm. Apple does not let web apps alarm in the background.</p>
+
+      <h3 class="sub">Backup</h3>
+      <div class="title-row">
+        <button id="exportBtn" class="btn" type="button">Export a backup</button>
+        <button id="importBtn" class="btn" type="button">Import a backup</button>
+      </div>
+      <input id="importFile" type="file" accept="application/json" hidden>
+    </div>
+    <div class="modal-actions">
+      <button id="saveSettings" class="btn primary" type="button">Done</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>
