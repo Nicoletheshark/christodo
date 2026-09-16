@@ -177,6 +177,19 @@
       <button id="notifyBtn" class="btn" type="button" hidden>Turn on reminders</button>
       <p class="hint">On iPhone, use <strong>Add to calendar</strong> on a task to get a real alarm. Apple does not let web apps alarm in the background.</p>
 
+      <h3 class="sub">Sync across devices</h3>
+      <p id="syncState" class="hint">Not syncing yet.</p>
+      <label class="lbl" for="fSyncCode">Sync code</label>
+      <div class="title-row">
+        <input id="fSyncCode" class="field" type="text" autocomplete="off" placeholder="e.g. oak-wren-4821">
+        <button id="newCodeBtn" class="btn" type="button">New</button>
+      </div>
+      <div class="title-row">
+        <button id="syncOnBtn" class="btn primary" type="button">Turn sync on</button>
+        <button id="syncOffBtn" class="btn" type="button" hidden>Stop syncing</button>
+      </div>
+      <p class="hint">Put the <strong>same code</strong> on every device and they share one list. Tap New to make one, then type it into Chris's phone.</p>
+
       <h3 class="sub">Backup</h3>
       <div class="title-row">
         <button id="exportBtn" class="btn" type="button">Export a backup</button>
@@ -192,6 +205,7 @@
 
 <div id="toast" class="toast" hidden></div>
 
+<script src="sync.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

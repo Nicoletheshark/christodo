@@ -10,7 +10,11 @@
 - Use the project's established import style (relative vs absolute paths).
 
 ## Known Gotchas
-_No known gotchas yet. Add issues as they are discovered._
+- iPhone Safari cannot do background notifications — the .ics "Add to calendar" download is the deliberate fallback for alarms. Do not replace it with Notification API only.
+- No build step. Edit index.html/styles.css/app.js directly; bump CACHE name in service-worker.js when shipping changes or users get stale files.
+- teams.json is only seeded on first run; existing users keep their localStorage teams.
+- Lead emails in teams.json are intentionally blank — never invent personal email addresses.
+- Always use textContent (not innerHTML) when rendering task fields; user text is unescaped otherwise.
 
 ## File Editing Notes
 _No particularly complex files detected. Standard editing practices apply._

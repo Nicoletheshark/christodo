@@ -9,6 +9,7 @@
     teams: [],
     types: [],
     contacts: [],
+    deleted: [],
     settings: { chaseAfterDays: 7 }
   };
 
@@ -68,6 +69,17 @@
     } catch (e) {
       toast('Could not save. Storage may be full.');
     }
+    if (window.ChrisSync && ChrisSync.enabled()) ChrisSync.push(state);
+  }
+
+  function stamp(t) {
+    if (t) t.updatedAt = new Date().toISOString();
+    return t;
+  }
+
+  function tombstone(id) {
+    state.deleted = state.deleted || [];
+    state.deleted.push({ id: id, at: new Date().toISOString() });
   }
 
   function load() {
@@ -80,6 +92,7 @@
       state.teams = Array.isArray(parsed.teams) ? parsed.teams : [];
       state.types = Array.isArray(parsed.types) ? parsed.types : [];
       state.contacts = Array.isArray(parsed.contacts) ? parsed.contacts : [];
+      state.deleted = Array.isArray(parsed.deleted) ? parsed.deleted : [];
       state.settings = parsed.settings || { chaseAfterDays: 7 };
       if (!state.settings.chaseAfterDays) state.settings.chaseAfterDays = 7;
       return state.teams.length > 0;
@@ -644,7 +657,34 @@
   }
 
   /* ---------- settings ---------- */
+  function syncStatus(text, kind) {
+    var el = $('syncState');
+    if (!el) return;
+    el.textContent = text;
+    el.className = 'hint' + (kind === 'warn' ? ' warn' : '');
+  }
+
+  function refreshSyncUi() {
+    var on = window.ChrisSync && ChrisSync.enabled();
+    $('fSyncCode').value = on ? ChrisSync.getCode() : '';
+    $('syncOnBtn').textContent = on ? 'Update code' : 'Turn sync on';
+    $('syncOffBtn').hidden = !on;
+    syncStatus(on
+      ? 'Syncing with code ' + ChrisSync.getCode() + '. Use the same code on Chris\'s phone.'
+      : 'Not syncing yet. This device keeps its own list.');
+  }
+
+  function startSync() {
+    if (!window.ChrisSync || !ChrisSync.enabled()) return;
+    ChrisSync.start(state, function () {
+      try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* ignore */ }
+      fillSelects();
+      render();
+    }, syncStatus);
+  }
+
   function openSettings() {
+    refreshSyncUi();
     $('fChaseDays').value = String(state.settings.chaseAfterDays);
     $('notifyBtn').hidden = !notificationsSupported() ||
       (notificationsSupported() && Notification.permission === 'granted');
@@ -696,6 +736,7 @@
         state.teams = data.teams || state.teams;
         state.types = data.types || state.types;
         state.contacts = data.contacts || [];
+        state.deleted = data.deleted || [];
         state.settings = data.settings || state.settings;
         save();
         render();
@@ -760,6 +801,9 @@
       var id = ui.editingId;
       if (!id) return;
       if (!window.confirm('Delete this task and any steps under it?')) return;
+      state.tasks.forEach(function (t) {
+        if (t.id === id || t.parentId === id) tombstone(t.id);
+      });
       state.tasks = state.tasks.filter(function (t) { return t.id !== id && t.parentId !== id; });
       save();
       render();
@@ -797,6 +841,27 @@
       });
     });
 
+    $('newCodeBtn').addEventListener('click', function () {
+      $('fSyncCode').value = ChrisSync.makeCode();
+    });
+
+    $('syncOnBtn').addEventListener('click', function () {
+      var code = $('fSyncCode').value.trim();
+      if (!code) { toast('Enter or generate a code first.'); return; }
+      ChrisSync.stop();
+      ChrisSync.setCode(code);
+      startSync();
+      refreshSyncUi();
+      toast('Sync on. Use ' + code + ' on the other phone.');
+    });
+
+    $('syncOffBtn').addEventListener('click', function () {
+      ChrisSync.stop();
+      ChrisSync.setCode('');
+      refreshSyncUi();
+      toast('Sync off. This device keeps its own list.');
+    });
+
     $('exportBtn').addEventListener('click', exportBackup);
     $('importBtn').addEventListener('click', function () { $('importFile').click(); });
     $('importFile').addEventListener('change', function (e) {
@@ -831,6 +896,7 @@
       fillSelects();
       render();
       maybeNotify();
+      startSync();
     });
 
     if ('serviceWorker' in navigator) {
