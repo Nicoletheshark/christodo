@@ -83,7 +83,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 /* ---------- sheet ---------- */
 .sheet-wrap{flex:1;overflow:auto;min-height:0;padding:0 18px 120px}
 .sheet-head{
-  display:grid;grid-template-columns:minmax(0,2.4fr) 1fr 1fr .8fr .9fr auto;
+  display:grid;grid-template-columns:minmax(0,2.4fr) 1fr 1fr .8fr .9fr auto auto;
   gap:12px;padding:12px 14px 8px;position:sticky;top:0;background:var(--paper);
   font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);
   z-index:2;
@@ -91,7 +91,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 .sheet{display:flex;flex-direction:column;gap:8px}
 
 .row{
-  display:grid;grid-template-columns:minmax(0,2.4fr) 1fr 1fr .8fr .9fr auto;
+  display:grid;grid-template-columns:minmax(0,2.4fr) 1fr 1fr .8fr .9fr auto auto;
   gap:12px;align-items:center;
   background:var(--card);border:1px solid var(--line);border-left:4px solid var(--line);
   border-radius:var(--radius);padding:14px;cursor:pointer;
