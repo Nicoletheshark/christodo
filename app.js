@@ -302,6 +302,19 @@
       row.appendChild(cal);
     }
 
+    if (!isSub && !t.parentId && statusOf(t) !== 'done' && statusOf(t) !== 'cancelled') {
+      var addSub = document.createElement('button');
+      addSub.type = 'button';
+      addSub.className = 'sub-btn';
+      addSub.textContent = '+ step';
+      addSub.setAttribute('aria-label', 'Add a step under this task');
+      addSub.addEventListener('click', function (e) {
+        e.stopPropagation();
+        openTask(null, t.id);
+      });
+      row.appendChild(addSub);
+    }
+
     var pick = document.createElement('select');
     pick.className = 'status-pick';
     pick.setAttribute('aria-label', 'Change status');

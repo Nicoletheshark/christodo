@@ -83,7 +83,7 @@ button,input,select,textarea{font:inherit;color:inherit}
 /* ---------- sheet ---------- */
 .sheet-wrap{flex:1;overflow:auto;min-height:0;padding:0 18px 120px}
 .sheet-head{
-  display:grid;grid-template-columns:minmax(0,2.4fr) 1fr 1fr .8fr .9fr auto auto;
+  display:grid;grid-template-columns:minmax(0,2.4fr) 1fr 1fr .8fr .9fr auto auto auto;
   gap:12px;padding:12px 14px 8px;position:sticky;top:0;background:var(--paper);
   font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);
   z-index:2;
@@ -91,13 +91,14 @@ button,input,select,textarea{font:inherit;color:inherit}
 .sheet{display:flex;flex-direction:column;gap:8px}
 
 .row{
-  display:grid;grid-template-columns:minmax(0,2.4fr) 1fr 1fr .8fr .9fr auto auto;
+  display:grid;grid-template-columns:minmax(0,2.4fr) 1fr 1fr .8fr .9fr auto auto auto;
   gap:12px;align-items:center;
   background:var(--card);border:1px solid var(--line);border-left:4px solid var(--line);
   border-radius:var(--radius);padding:14px;cursor:pointer;
 }
 .row:hover{border-color:var(--accent);border-left-color:var(--accent)}
-.row.is-sub{margin-left:26px;background:#FFFDFB}
+.row.is-sub{margin-left:26px;background:#FFFDFB;border-left:3px solid var(--line)}
+.row.is-sub .r-title::before{content:'\21B3';color:var(--muted);margin-right:8px}
 .row.overdue{border-left-color:var(--red)}
 .row.due-soon{border-left-color:var(--amber)}
 .row.is-done .r-title{text-decoration:line-through;color:var(--muted)}
@@ -118,6 +119,11 @@ button,input,select,textarea{font:inherit;color:inherit}
   height:38px;padding:0 8px;font:inherit;font-size:13px;cursor:pointer;color:var(--ink);
 }
 .status-pick:hover{border-color:var(--green)}
+.sub-btn{
+  border:1px dashed var(--line);background:transparent;border-radius:8px;
+  height:38px;padding:0 10px;font:inherit;font-size:12px;cursor:pointer;color:var(--muted);white-space:nowrap;
+}
+.sub-btn:hover{border-color:var(--ink);color:var(--ink)}
 .cal-btn{
   border:1px solid var(--line);background:var(--card);border-radius:8px;
   width:38px;height:38px;cursor:pointer;font-size:16px;line-height:1;
@@ -216,7 +222,9 @@ button,input,select,textarea{font:inherit;color:inherit}
   .tick{position:absolute;right:14px;top:14px}
   .status-pick{position:absolute;right:14px;top:14px;max-width:118px}
   .cal-btn{position:absolute;right:138px;top:14px}
-  .row{position:relative;padding-right:186px}
+  .sub-btn{position:absolute;right:14px;bottom:14px}
+  .row{position:relative;padding-right:186px;padding-bottom:58px}
+  .row.is-sub{padding-bottom:14px}
   .chase{margin-top:12px}
   .modal-actions .btn{flex:1 1 calc(50% - 8px)}
   .grid2{grid-template-columns:1fr}
