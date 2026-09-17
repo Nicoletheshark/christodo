@@ -244,6 +244,21 @@
     }
     row.appendChild(date);
 
+    if (t.deadline && statusOf(t) !== 'done' && statusOf(t) !== 'cancelled') {
+      var cal = document.createElement('button');
+      cal.type = 'button';
+      cal.className = 'cal-btn';
+      cal.textContent = '\u23F0';
+      cal.title = 'Add alarm to calendar';
+      cal.setAttribute('aria-label', 'Add alarm to calendar for ' + t.title);
+      cal.addEventListener('click', function (e) {
+        e.stopPropagation();
+        downloadIcs(t);
+        toast('Calendar alarm saved. Open the file to add it.');
+      });
+      row.appendChild(cal);
+    }
+
     var tick = document.createElement('button');
     tick.type = 'button';
     tick.className = 'tick';
@@ -410,7 +425,9 @@
     var s = t ? statusOf(t) : 'new';
     $('subTaskBtn').hidden = !t || !!(t && t.parentId);
     $('assignBtn').hidden = !t || s === 'done' || s === 'cancelled';
-    $('icsBtn').hidden = !t || !t.deadline;
+    $('icsBtn').hidden = !t;
+    $('icsBtn').textContent = (t && t.deadline) ? 'Add alarm to calendar' : 'Add a deadline to set an alarm';
+    $('icsBtn').disabled = !(t && t.deadline);
     $('doneBtn').hidden = !t || s === 'done';
     $('cancelTaskBtn').hidden = !t || s === 'cancelled';
     $('restoreBtn').hidden = !t || (s !== 'done' && s !== 'cancelled');
