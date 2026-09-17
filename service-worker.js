@@ -1,10 +1,11 @@
 /* Cache-first shell so the app opens without a connection. */
-var CACHE = 'christodo-v1';
+var CACHE = 'christodo-v3';
 var ASSETS = [
   './',
   'index.html',
   'styles.css',
   'app.js',
+  'sync.js',
   'teams.json',
   'manifest.json',
   'icons/icon-192.png',
