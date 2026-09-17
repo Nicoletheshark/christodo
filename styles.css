@@ -120,10 +120,11 @@ button,input,select,textarea{font:inherit;color:inherit}
 }
 .status-pick:hover{border-color:var(--green)}
 .sub-btn{
-  border:1px dashed var(--line);background:transparent;border-radius:8px;
-  height:38px;padding:0 10px;font:inherit;font-size:12px;cursor:pointer;color:var(--muted);white-space:nowrap;
+  border:1px dashed var(--accent);background:var(--accent-soft);border-radius:8px;
+  height:38px;padding:0 12px;font:inherit;font-size:13px;font-weight:600;
+  cursor:pointer;color:var(--accent);white-space:nowrap;
 }
-.sub-btn:hover{border-color:var(--ink);color:var(--ink)}
+.sub-btn:hover{background:var(--accent);color:#fff}
 .cal-btn{
   border:1px solid var(--line);background:var(--card);border-radius:8px;
   width:38px;height:38px;cursor:pointer;font-size:16px;line-height:1;
@@ -222,9 +223,8 @@ button,input,select,textarea{font:inherit;color:inherit}
   .tick{position:absolute;right:14px;top:14px}
   .status-pick{position:absolute;right:14px;top:14px;max-width:118px}
   .cal-btn{position:absolute;right:138px;top:14px}
-  .sub-btn{position:absolute;right:14px;bottom:14px}
-  .row{position:relative;padding-right:186px;padding-bottom:58px}
-  .row.is-sub{padding-bottom:14px}
+  .sub-btn{position:static;display:inline-block;margin-top:10px;height:34px}
+  .row{position:relative;padding-right:150px;padding-bottom:14px}
   .chase{margin-top:12px}
   .modal-actions .btn{flex:1 1 calc(50% - 8px)}
   .grid2{grid-template-columns:1fr}
