@@ -259,7 +259,12 @@
       bits.push(doneKids + ' of ' + kids.length + ' steps done');
     }
     if (statusOf(t) === 'assigned' && t.assignedTo) {
-      bits.push('Assigned to ' + t.assignedTo + ' on ' + prettyDate(t.assignedDate));
+      bits.push('Assigned to ' + t.assignedTo + (t.assignedEmail ? ' (' + t.assignedEmail + ')' : '') +
+        ' on ' + prettyDate(t.assignedDate));
+    }
+    if (statusOf(t) === 'cancelled' && t.cancelledBy) {
+      bits.push('Cancelled by ' + t.cancelledBy + ' on ' + prettyDate(t.cancelledDate) +
+        (t.cancelledReason ? ' \u2014 ' + t.cancelledReason : ''));
     }
     if (t.notes) bits.push(t.notes.slice(0, 70));
     if (bits.length) {
@@ -297,19 +302,29 @@
       row.appendChild(cal);
     }
 
-    var tick = document.createElement('button');
-    tick.type = 'button';
-    tick.className = 'tick';
-    tick.textContent = statusOf(t) === 'done' ? '↩' : '✓';
-    tick.setAttribute('aria-label', statusOf(t) === 'done' ? 'Move back to active' : 'Mark done');
-    tick.addEventListener('click', function (e) {
+    var pick = document.createElement('select');
+    pick.className = 'status-pick';
+    pick.setAttribute('aria-label', 'Change status');
+    [['active', 'Still to do'], ['done', 'Done'], ['assigned', 'Assigned'], ['cancelled', 'Cancelled']]
+      .forEach(function (o) {
+        var op = document.createElement('option');
+        op.value = o[0];
+        op.textContent = o[1];
+        if (statusOf(t) === o[0]) op.selected = true;
+        pick.appendChild(op);
+      });
+    pick.addEventListener('click', function (e) { e.stopPropagation(); });
+    pick.addEventListener('change', function (e) {
       e.stopPropagation();
-      t.status = statusOf(t) === 'done' ? 'active' : 'done';
+      var v = pick.value;
+      if (v === 'assigned') { openAssign(t.id); return; }
+      if (v === 'cancelled') { openCancel(t.id); return; }
+      t.status = v;
       t.updatedAt = new Date().toISOString();
       save();
       render();
     });
-    row.appendChild(tick);
+    row.appendChild(pick);
 
     row.addEventListener('click', function () { openTask(t.id); });
 
@@ -588,11 +603,44 @@
 
   /* ---------- assign ---------- */
   function openAssign(id) {
+    var t = findTask(id);
     ui.assignTargetId = id;
-    $('fAssignTo').value = '';
+    $('fAssignTo').value = (t && t.assignedTo) || '';
+    $('fAssignEmail').value = (t && t.assignedEmail) || '';
+    $('fAssignDate').value = (t && t.assignedDate) || todayISO();
     fillDatalists($('fTeam').value);
     $('assignModal').hidden = false;
     $('fAssignTo').focus();
+  }
+
+  function openCancel(id) {
+    var t = findTask(id);
+    ui.cancelTargetId = id;
+    $('fCancelBy').value = (t && t.cancelledBy) || '';
+    $('fCancelDate').value = (t && t.cancelledDate) || todayISO();
+    $('fCancelWhy').value = (t && t.cancelledReason) || '';
+    fillDatalists($('fTeam').value);
+    $('cancelModal').hidden = false;
+    $('fCancelBy').focus();
+  }
+
+  function confirmCancel() {
+    var who = $('fCancelBy').value.trim();
+    if (!who) { toast('Who cancelled it?'); return; }
+    var t = findTask(ui.cancelTargetId);
+    if (t) {
+      t.status = 'cancelled';
+      t.cancelledBy = who;
+      t.cancelledDate = $('fCancelDate').value || todayISO();
+      t.cancelledReason = $('fCancelWhy').value.trim();
+      t.updatedAt = new Date().toISOString();
+      rememberContact(who, '');
+      save();
+      render();
+      toast('Cancelled by ' + who + '.');
+    }
+    $('cancelModal').hidden = true;
+    closeTask();
   }
 
   function confirmAssign() {
@@ -602,10 +650,11 @@
     if (t) {
       t.status = 'assigned';
       t.assignedTo = name;
-      t.assignedDate = todayISO();
+      t.assignedEmail = $('fAssignEmail').value.trim();
+      t.assignedDate = $('fAssignDate').value || todayISO();
       t.lastChasedDate = '';
       t.updatedAt = new Date().toISOString();
-      rememberContact(name, '');
+      rememberContact(name, t.assignedEmail);
       save();
       render();
       toast('Assigned to ' + name + '.');
@@ -960,8 +1009,10 @@
       toast('Deleted.');
     });
 
-    $('closeAssign').addEventListener('click', function () { $('assignModal').hidden = true; });
+    $('closeAssign').addEventListener('click', function () { $('assignModal').hidden = true; render(); });
     $('confirmAssign').addEventListener('click', confirmAssign);
+    $('closeCancel').addEventListener('click', function () { $('cancelModal').hidden = true; render(); });
+    $('confirmCancel').addEventListener('click', confirmCancel);
 
     $('settingsBtn').addEventListener('click', openSettings);
     $('closeSettings').addEventListener('click', function () { $('settingsModal').hidden = true; });
@@ -1022,11 +1073,12 @@
       if (e.key === 'Escape') {
         if (!$('taskModal').hidden) closeTask();
         $('assignModal').hidden = true;
+        $('cancelModal').hidden = true;
         $('settingsModal').hidden = true;
       }
     });
 
-    [['taskModal', closeTask], ['assignModal', null], ['settingsModal', null]].forEach(function (pair) {
+    [['taskModal', closeTask], ['assignModal', null], ['cancelModal', null], ['settingsModal', null]].forEach(function (pair) {
       $(pair[0]).addEventListener('click', function (e) {
         if (e.target !== this) return;
         if (pair[1]) pair[1](); else this.hidden = true;

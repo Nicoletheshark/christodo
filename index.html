@@ -139,10 +139,36 @@
     <div class="modal-body">
       <label class="lbl" for="fAssignTo">Who is taking this on?</label>
       <input id="fAssignTo" class="field" type="text" list="peopleList" autocomplete="off" placeholder="Their name">
-      <p class="hint">It moves to the Assigned out sheet, stamped with today's date.</p>
+      <label class="lbl" for="fAssignEmail">Their email</label>
+      <input id="fAssignEmail" class="field" type="email" autocomplete="off" placeholder="name@canva.com">
+      <label class="lbl" for="fAssignDate">When did you hand it over?</label>
+      <input id="fAssignDate" class="field" type="date">
+      <p class="hint">It moves to the Assigned out sheet and starts the check-in nudges.</p>
     </div>
     <div class="modal-actions">
       <button id="confirmAssign" class="btn primary" type="button">Assign</button>
+    </div>
+  </div>
+</div>
+
+<!-- Cancel modal -->
+<div id="cancelModal" class="modal" hidden>
+  <div class="modal-card narrow" role="dialog" aria-modal="true" aria-labelledby="cancelTitle">
+    <div class="modal-head">
+      <h2 id="cancelTitle">Cancel this task</h2>
+      <button id="closeCancel" class="icon-btn" type="button" aria-label="Close">Close</button>
+    </div>
+    <div class="modal-body">
+      <label class="lbl" for="fCancelBy">Who cancelled it?</label>
+      <input id="fCancelBy" class="field" type="text" list="peopleList" autocomplete="off" placeholder="Their name">
+      <label class="lbl" for="fCancelDate">When was it cancelled?</label>
+      <input id="fCancelDate" class="field" type="date">
+      <label class="lbl" for="fCancelWhy">Why? (optional)</label>
+      <input id="fCancelWhy" class="field" type="text" placeholder="Short reason">
+      <p class="hint">It moves to the Cancelled sheet with a record of who called it off.</p>
+    </div>
+    <div class="modal-actions">
+      <button id="confirmCancel" class="btn primary" type="button">Cancel the task</button>
     </div>
   </div>
 </div>

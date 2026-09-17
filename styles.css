@@ -113,6 +113,11 @@ button,input,select,textarea{font:inherit;color:inherit}
   width:38px;height:38px;cursor:pointer;color:var(--muted);
 }
 .tick:hover{border-color:var(--green);color:var(--green)}
+.status-pick{
+  border:1px solid var(--line);background:var(--card);border-radius:8px;
+  height:38px;padding:0 8px;font:inherit;font-size:13px;cursor:pointer;color:var(--ink);
+}
+.status-pick:hover{border-color:var(--green)}
 .cal-btn{
   border:1px solid var(--line);background:var(--card);border-radius:8px;
   width:38px;height:38px;cursor:pointer;font-size:16px;line-height:1;
@@ -209,8 +214,9 @@ button,input,select,textarea{font:inherit;color:inherit}
   .r-cell,.r-date{display:inline-block;margin:6px 10px 0 0}
   .r-cell:empty{display:none}
   .tick{position:absolute;right:14px;top:14px}
-  .cal-btn{position:absolute;right:58px;top:14px}
-  .row{position:relative;padding-right:106px}
+  .status-pick{position:absolute;right:14px;top:14px;max-width:118px}
+  .cal-btn{position:absolute;right:138px;top:14px}
+  .row{position:relative;padding-right:186px}
   .chase{margin-top:12px}
   .modal-actions .btn{flex:1 1 calc(50% - 8px)}
   .grid2{grid-template-columns:1fr}
