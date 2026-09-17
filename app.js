@@ -244,7 +244,7 @@
     }
     row.appendChild(date);
 
-    if (t.deadline && statusOf(t) !== 'done' && statusOf(t) !== 'cancelled') {
+    if (statusOf(t) !== 'done' && statusOf(t) !== 'cancelled') {
       var cal = document.createElement('button');
       cal.type = 'button';
       cal.className = 'cal-btn';
@@ -253,6 +253,7 @@
       cal.setAttribute('aria-label', 'Add alarm to calendar for ' + t.title);
       cal.addEventListener('click', function (e) {
         e.stopPropagation();
+        if (!t.deadline) { toast('Add a deadline to this task first, then tap the alarm.'); openTask(t.id); return; }
         downloadIcs(t);
         toast('Calendar alarm saved. Open the file to add it.');
       });
