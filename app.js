@@ -420,6 +420,7 @@
     $('fOwner').value = t ? (t.ownerName || '') : '';
     $('fContact').value = t ? (t.contactEmail || '') : '';
     $('fDeadline').value = t ? (t.deadline || '') : '';
+    $('fReminder').value = t ? (t.reminder == null ? '' : String(t.reminder)) : '';
     $('fNotes').value = t ? (t.notes || '') : '';
     fillDatalists($('fTeam').value);
 
@@ -453,6 +454,7 @@
       ownerName: $('fOwner').value.trim(),
       contactEmail: $('fContact').value.trim(),
       deadline: $('fDeadline').value,
+      reminder: $('fReminder').value,
       notes: $('fNotes').value.trim()
     };
   }
@@ -480,8 +482,18 @@
     t.ownerName = f.ownerName;
     t.contactEmail = f.contactEmail;
     t.deadline = f.deadline;
+    var reminderChanged = String(t.reminder == null ? '' : t.reminder) !== String(f.reminder);
+    t.reminder = f.reminder === '' ? null : parseInt(f.reminder, 10);
     t.notes = f.notes;
     t.updatedAt = now;
+
+    if (t.reminder != null && reminderChanged) {
+      if (!t.deadline) {
+        toast('Add a deadline so the alarm knows when to go off.');
+      } else {
+        downloadIcs(t);
+      }
+    }
 
     rememberContact(f.ownerName, f.contactEmail);
     save();
@@ -569,6 +581,7 @@
 
   function downloadIcs(t) {
     if (!t.deadline) { toast('Add a deadline first.'); return; }
+    var lead = (t.reminder == null) ? 1 : t.reminder;
     var start = t.deadline.replace(/-/g, '');
     var end = addDays(t.deadline, 1).replace(/-/g, '');
     var now = new Date();
@@ -586,8 +599,8 @@
       'DTEND;VALUE=DATE:' + end,
       'SUMMARY:' + esc(t.title),
       'DESCRIPTION:' + esc([teamName(t.teamId), t.ownerName, t.notes].filter(Boolean).join(' - ')),
-      'BEGIN:VALARM', 'TRIGGER:-P1D', 'ACTION:DISPLAY',
-      'DESCRIPTION:' + esc('Due tomorrow: ' + t.title),
+      'BEGIN:VALARM', 'TRIGGER:' + (lead === 0 ? '-PT9H' : '-P' + lead + 'D'), 'ACTION:DISPLAY',
+      'DESCRIPTION:' + esc((lead === 0 ? 'Due today: ' : 'Coming up: ') + t.title),
       'END:VALARM',
       'END:VEVENT', 'END:VCALENDAR'
     ];

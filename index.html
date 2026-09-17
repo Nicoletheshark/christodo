@@ -97,6 +97,19 @@
       <label class="lbl" for="fDeadline">Deadline</label>
       <input id="fDeadline" class="field" type="date">
 
+      <label class="lbl" for="fReminder">Add an alarm for this</label>
+      <select id="fReminder" class="field">
+        <option value="">No alarm</option>
+        <option value="0">On the day it's due</option>
+        <option value="1">1 day before</option>
+        <option value="7">1 week before</option>
+        <option value="30">1 month before</option>
+        <option value="90">3 months before</option>
+        <option value="180">6 months before</option>
+        <option value="365">1 year before</option>
+      </select>
+      <p id="reminderHint" class="hint">Pick an alarm and it gets added to your calendar when you save.</p>
+
       <label class="lbl" for="fNotes">Notes</label>
       <textarea id="fNotes" class="field" rows="3" placeholder="Anything worth remembering"></textarea>
 

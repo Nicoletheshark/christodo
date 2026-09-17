@@ -1,5 +1,5 @@
 /* Cache-first shell so the app opens without a connection. */
-var CACHE = 'christodo-v7';
+var CACHE = 'christodo-v8';
 var ASSETS = [
   './',
   'index.html',
