@@ -190,11 +190,14 @@
       </div>
       <p class="hint">Put the <strong>same code</strong> on every device and they share one list. Tap New to make one, then type it into Chris's phone.</p>
 
-      <h3 class="sub">Backup</h3>
-      <div class="title-row">
-        <button id="exportBtn" class="btn" type="button">Export a backup</button>
-        <button id="importBtn" class="btn" type="button">Import a backup</button>
-      </div>
+      <details class="advanced">
+        <summary>Advanced (you can ignore this)</summary>
+        <p class="hint">Only needed if you want a copy of your list as a file. Sync already keeps your devices in step.</p>
+        <div class="title-row">
+          <button id="exportBtn" class="btn" type="button">Export a backup</button>
+          <button id="importBtn" class="btn" type="button">Import a backup</button>
+        </div>
+      </details>
       <input id="importFile" type="file" accept="application/json" hidden>
     </div>
     <div class="modal-actions">
