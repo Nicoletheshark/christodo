@@ -62,6 +62,43 @@
     return '';
   }
 
+  /* ---------- alarms ---------- */
+  var ALARM_LEADS = [0, 1, 7, 30, 90, 180, 365];
+
+  function remindersOf(t) {
+    if (!t) return [];
+    if (Array.isArray(t.reminders)) return t.reminders.slice().sort(function (a, b) { return a - b; });
+    if (t.reminder != null && t.reminder !== '') return [parseInt(t.reminder, 10)];
+    return [];
+  }
+
+  function readAlarmBoxes() {
+    var out = [];
+    document.querySelectorAll('.alarm-box').forEach(function (b) {
+      if (b.checked) out.push(parseInt(b.value, 10));
+    });
+    return out.sort(function (a, b) { return a - b; });
+  }
+
+  function setAlarmBoxes(list) {
+    var on = {};
+    (list || []).forEach(function (n) { on[n] = true; });
+    document.querySelectorAll('.alarm-box').forEach(function (b) {
+      b.checked = !!on[parseInt(b.value, 10)];
+    });
+  }
+
+  function alarmLabel(n) {
+    if (n === 0) return 'on the day';
+    if (n === 1) return '1 day before';
+    if (n === 7) return '1 week before';
+    if (n === 30) return '1 month before';
+    if (n === 90) return '3 months before';
+    if (n === 180) return '6 months before';
+    if (n === 365) return '1 year before';
+    return n + ' days before';
+  }
+
   /* ---------- storage ---------- */
   function save() {
     try {
@@ -420,7 +457,7 @@
     $('fOwner').value = t ? (t.ownerName || '') : '';
     $('fContact').value = t ? (t.contactEmail || '') : '';
     $('fDeadline').value = t ? (t.deadline || '') : '';
-    $('fReminder').value = t ? (t.reminder == null ? '' : String(t.reminder)) : '';
+    setAlarmBoxes(t ? remindersOf(t) : []);
     $('fNotes').value = t ? (t.notes || '') : '';
     fillDatalists($('fTeam').value);
 
@@ -454,7 +491,7 @@
       ownerName: $('fOwner').value.trim(),
       contactEmail: $('fContact').value.trim(),
       deadline: $('fDeadline').value,
-      reminder: $('fReminder').value,
+      reminders: readAlarmBoxes(),
       notes: $('fNotes').value.trim()
     };
   }
@@ -482,12 +519,13 @@
     t.ownerName = f.ownerName;
     t.contactEmail = f.contactEmail;
     t.deadline = f.deadline;
-    var reminderChanged = String(t.reminder == null ? '' : t.reminder) !== String(f.reminder);
-    t.reminder = f.reminder === '' ? null : parseInt(f.reminder, 10);
+    var reminderChanged = remindersOf(t).join(',') !== f.reminders.join(',');
+    t.reminders = f.reminders.slice();
+    t.reminder = f.reminders.length ? f.reminders[0] : null;
     t.notes = f.notes;
     t.updatedAt = now;
 
-    if (t.reminder != null && reminderChanged) {
+    if (t.reminders.length && reminderChanged) {
       if (!t.deadline) {
         toast('Add a deadline so the alarm knows when to go off.');
       } else {
@@ -581,7 +619,8 @@
 
   function downloadIcs(t) {
     if (!t.deadline) { toast('Add a deadline first.'); return; }
-    var lead = (t.reminder == null) ? 1 : t.reminder;
+    var leads = remindersOf(t);
+    if (!leads.length) leads = [1];
     var start = t.deadline.replace(/-/g, '');
     var end = addDays(t.deadline, 1).replace(/-/g, '');
     var now = new Date();
@@ -599,11 +638,20 @@
       'DTEND;VALUE=DATE:' + end,
       'SUMMARY:' + esc(t.title),
       'DESCRIPTION:' + esc([teamName(t.teamId), t.ownerName, t.notes].filter(Boolean).join(' - ')),
-      'BEGIN:VALARM', 'TRIGGER:' + (lead === 0 ? '-PT9H' : '-P' + lead + 'D'), 'ACTION:DISPLAY',
-      'DESCRIPTION:' + esc((lead === 0 ? 'Due today: ' : 'Coming up: ') + t.title),
-      'END:VALARM',
       'END:VEVENT', 'END:VCALENDAR'
     ];
+
+    var alarmLines = [];
+    leads.forEach(function (lead) {
+      alarmLines.push(
+        'BEGIN:VALARM',
+        'TRIGGER:' + (lead === 0 ? '-PT9H' : '-P' + lead + 'D'),
+        'ACTION:DISPLAY',
+        'DESCRIPTION:' + esc((lead === 0 ? 'Due today: ' : 'Coming up: ') + t.title),
+        'END:VALARM'
+      );
+    });
+    lines.splice(lines.length - 2, 0, ...alarmLines);
 
     var blob = new Blob([lines.join('\r\n')], { type: 'text/calendar' });
     var url = URL.createObjectURL(blob);
@@ -631,7 +679,51 @@
     return soon;
   }
 
+  /* Alarms that are due today, based on the boxes ticked on each task. */
+  function alarmsDueToday() {
+    var hits = [];
+    state.tasks.forEach(function (t) {
+      var s = statusOf(t);
+      if (s !== 'active' && s !== 'assigned') return;
+      if (!t.deadline) return;
+      var d = daysUntil(t.deadline);
+      remindersOf(t).forEach(function (lead) {
+        if (d === lead) hits.push({ task: t, lead: lead });
+      });
+    });
+    return hits;
+  }
+
+  function firedKey() { return 'christodo.fired.' + todayISO(); }
+
   function maybeNotify() {
+    var hits = alarmsDueToday();
+
+    if (hits.length) {
+      var fired = '';
+      try { fired = localStorage.getItem(firedKey()) || ''; } catch (e) { fired = ''; }
+      var fresh = hits.filter(function (h) { return fired.indexOf(h.task.id + ':' + h.lead) === -1; });
+
+      if (fresh.length) {
+        showAlarmBanner(fresh);
+        if (notificationsSupported() && Notification.permission === 'granted') {
+          fresh.forEach(function (h) {
+            try {
+              new Notification('Alarm: ' + h.task.title, {
+                body: (h.lead === 0 ? 'Due today' : 'Due ' + prettyDate(h.task.deadline) + ' (' + alarmLabel(h.lead) + ')'),
+                tag: h.task.id + ':' + h.lead
+              });
+            } catch (e) { /* ignore */ }
+          });
+        }
+        try {
+          localStorage.setItem(firedKey(), fired + fresh.map(function (h) {
+            return h.task.id + ':' + h.lead;
+          }).join('|') + '|');
+        } catch (e) { /* ignore */ }
+      }
+    }
+
     if (!notificationsSupported() || Notification.permission !== 'granted') return;
     var soon = dueSummary();
     if (!soon.length) return;
@@ -644,6 +736,32 @@
       });
       localStorage.setItem('christodo.notified', todayISO());
     } catch (e) { /* ignore */ }
+  }
+
+  function showAlarmBanner(hits) {
+    var bar = $('alarmBar');
+    if (!bar) return;
+    bar.textContent = '';
+
+    var head = document.createElement('strong');
+    head.textContent = hits.length === 1 ? 'Alarm' : hits.length + ' alarms';
+    bar.appendChild(head);
+
+    hits.slice(0, 5).forEach(function (h) {
+      var line = document.createElement('span');
+      line.textContent = h.task.title + ' \u2014 due ' + prettyDate(h.task.deadline) +
+        ' (' + alarmLabel(h.lead) + ')';
+      bar.appendChild(line);
+    });
+
+    var x = document.createElement('button');
+    x.type = 'button';
+    x.className = 'btn';
+    x.textContent = 'Got it';
+    x.addEventListener('click', function () { bar.hidden = true; });
+    bar.appendChild(x);
+
+    bar.hidden = false;
   }
 
   /* ---------- voice ---------- */
@@ -928,6 +1046,12 @@
       render();
       maybeNotify();
       startSync();
+    });
+
+    /* Re-check alarms every 5 minutes and whenever the app comes back to the front. */
+    setInterval(function () { try { maybeNotify(); } catch (e) { /* ignore */ } }, 300000);
+    document.addEventListener('visibilitychange', function () {
+      if (!document.hidden) { try { maybeNotify(); } catch (e) { /* ignore */ } }
     });
 
     if ('serviceWorker' in navigator) {

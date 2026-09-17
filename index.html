@@ -51,6 +51,7 @@
     <div class="sheet-head" aria-hidden="true">
       <span>Task</span><span>Team</span><span>Person</span><span>Type</span><span>Deadline</span><span></span><span></span>
     </div>
+    <div id="alarmBar" class="alarm-bar" hidden></div>
     <div id="sheet" class="sheet"></div>
     <p id="emptyState" class="empty" hidden>Nothing here yet. Tap <strong>Add task</strong> to put the first one in.</p>
   </main>
@@ -97,18 +98,17 @@
       <label class="lbl" for="fDeadline">Deadline</label>
       <input id="fDeadline" class="field" type="date">
 
-      <label class="lbl" for="fReminder">Add an alarm for this</label>
-      <select id="fReminder" class="field">
-        <option value="">No alarm</option>
-        <option value="0">On the day it's due</option>
-        <option value="1">1 day before</option>
-        <option value="7">1 week before</option>
-        <option value="30">1 month before</option>
-        <option value="90">3 months before</option>
-        <option value="180">6 months before</option>
-        <option value="365">1 year before</option>
-      </select>
-      <p id="reminderHint" class="hint">Pick an alarm and it gets added to your calendar when you save.</p>
+      <label class="lbl">Add an alarm for this</label>
+      <div id="alarmList" class="alarm-list">
+        <label class="alarm-row"><span>On the day it's due</span><input type="checkbox" class="alarm-box" value="0"></label>
+        <label class="alarm-row"><span>1 day before</span><input type="checkbox" class="alarm-box" value="1"></label>
+        <label class="alarm-row"><span>1 week before</span><input type="checkbox" class="alarm-box" value="7"></label>
+        <label class="alarm-row"><span>1 month before</span><input type="checkbox" class="alarm-box" value="30"></label>
+        <label class="alarm-row"><span>3 months before</span><input type="checkbox" class="alarm-box" value="90"></label>
+        <label class="alarm-row"><span>6 months before</span><input type="checkbox" class="alarm-box" value="180"></label>
+        <label class="alarm-row"><span>1 year before</span><input type="checkbox" class="alarm-box" value="365"></label>
+      </div>
+      <p id="reminderHint" class="hint">Tick as many as you like. When you save, they all go into one calendar event, and the app also nudges you here.</p>
 
       <label class="lbl" for="fNotes">Notes</label>
       <textarea id="fNotes" class="field" rows="3" placeholder="Anything worth remembering"></textarea>
